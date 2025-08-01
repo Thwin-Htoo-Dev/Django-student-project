@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Student List </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+
+    <style>
+        .ti {
+            color: white;
+            text-align: center;
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 2px 2px 5px rgb(8, 8, 8), 2px 0px 5px #0cc;
+        }
+
+        .btn-add-student,
+        .btn-search,
+        .btn-import,
+        .btn-export,
+        .export-selected {
+            display: inline-block;
+            padding: 10px 25px;
+            color: white;
+            background-color: #17a2b8;
+            border: 2px solid black;
+            border-radius: 30px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add-student:hover,
+        .btn-search:hover,
+        .btn-import:hover,
+        .btn-export:hover,
+        .export-selected:hover {
+            background-color: aqua;
+            color: #000;
+            box-shadow: 0 4px 10px rgba(0, 255, 255, 0.4);
+        }
+
+        thead {
+            background-color: #17a2b8;
+            color: rgb(15, 14, 14);
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #d0ebff;
+        }
+
+        table {
+            border-collapse: collapse;
+            border: 2px solid #1a1a1a;
+            width: 95%;
+            background-color: white;
+            margin: 20px auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #1a1a1a;
+            padding: 6px 15px;
+            text-align: center;
+            vertical-align: middle;
+            height: 55px;
+            font-size: small;
+        }
+
+        td:nth-child(3),
+        td:nth-child(4),
+        td:nth-child(9),
+        td:nth-child(10) {
+            word-wrap: break-word;
+            white-space: normal;
+            max-width: 170px;
+        }
+
+        td input[type="checkbox"] {
+            transform: scale(1.2);
+            margin: 0;
+            vertical-align: middle;
+        }
+
+        .student-selected {
+            margin-left: 35px;
+            color: #000;
+        }
+
+        .custom-button {
+            border-radius: 5px;
+            color: white;
+            background-color: rgb(5, 124, 124);
+            padding: 4px 8px;
+            font-weight: 600;
+            box-shadow: 1px 1px 3px rgba(246, 244, 244, 0.899);
+            transition: all 0.2s ease-in-out;
+            margin: 0 3px;
+        }
+
+        .custom-button:hover {
+            transform: scale(1.02);
+            background-color: aqua;
+            color: #000;
+            box-shadow: 0 4px 10px rgba(0, 255, 255, 0.4);
+        }
+
+        /* Optional global reset */
+        * {
+            box-sizing: border-box;
+        }
+
+        .pagination .page-link {
+            color: #015a61;
+            /* normal color */
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #17a2b8;
+            /* background of active page */
+            color: white;
+            /* text color of active page */
+            border-color: #17a2b8;
+        }
+
+        .pagination .page-link:hover {
+            color: #0caef3;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+    </style>
+</head>
+
+<body style="background-color: rgb(227, 231, 231);">
+    <h1 class="ti">Student List</h1>
+    {% if messages %}
+    <div style="display: flex; justify-content: center; margin-top: 20px;" id="messages">
+        <div style="max-width: 600px; width: 100%;">
+            {% for message in messages %}
+            {% if message.tags == 'success' %}
+            <div
+                style="background: #e6ffed; border-left: 6px solid #28a745; color: #155724; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center;">
+                    <i class="bi bi-check-circle-fill" style="font-size: 1.25rem; margin-right: 10px;"></i>
+                    {{ message }}
+                </div>
+                <button onclick="this.parentElement.style.display='none';"
+                    style="border: none; background: transparent; font-size: 1.5rem; color: #155724; cursor: pointer;">&times;</button>
+            </div>
+            {% elif message.tags == 'error' %}
+            <div
+                style="background: #fff3cd; border-left: 6px solid #ffc107; color: #856404; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center;">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.25rem; margin-right: 10px;"></i>
+                    {{ message }}
+                </div>
+                <button onclick="this.parentElement.style.display='none';"
+                    style="border: none; background: transparent; font-size: 1.5rem; color: #856404; cursor: pointer;">&times;</button>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="container mt-3">
+        <div class="row align-items-center">
+
+            <!-- Left Column: Total Students and Showing Count -->
+            <div class="col-md-6">
+                <h4 style="font-family: 'Times New Roman', Times, serif;">
+                    Total Students:
+                    <span style="color: #010b0d; font-weight: bold;">
+                        {{ total_students }}
+                    </span>
+                </h4>
+                <p style="font-style: italic;">
+                    Showing {{ page_obj|length }} student{{ page_obj|length|pluralize }} out of {{ total_students }}
+                </p>
+            </div>
+
+            <!-- Right Column: Search Form -->
+            <div class="col-md-6">
+                <form method="get" class="d-flex justify-content-end align-items-center flex-wrap gap-2">
+                    <input type="text" name="q" placeholder="Search by ID or Name" value="{{ query }}"
+                        class="form-control"
+                        style="border-radius: 25px; padding: 10px 20px; border: 2px solid rgb(31, 38, 38); max-width: 250px;">
+                    <button type="submit" class="btn-search" style="border-radius: 20px;">Search</button>
+                    <a href="{% url 'student_create' %}" class="btn-add-student" style="border-radius: 20px;">+ Add
+                        Student</a>
+                </form>
+            </div>
+
+        </div>
+    </div>
+    <!-- Updated HTML + JS to Fix Export Selected -->
+    <div class="container my-4">
+        <div class="row justify-content-between align-items-center g-3">
+
+            <!-- Import Section -->
+            <div class="col-lg-6" style="margin-right: -30px;">
+                <form method="POST" action="{% url 'student_import_export' %}" enctype="multipart/form-data"
+                    class="d-flex align-items-center flex-wrap gap-2" style="margin-right: -30px;">
+                    {% csrf_token %}
+                    <label for="import-format" class="form-label mb-0 fw-bold">Import Format:</label>
+                    <select name="file-format" id="import-format" class="form-select w-auto" required>
+                        <option value="csv">CSV</option>
+                        <option value="json">JSON</option>
+                    </select>
+                    <input type="file" name="importFile" class="form-control w-auto" required>
+                    <button type="submit" name="import" class="btn-import">Import</button>
+                </form>
+            </div>
+
+            <!-- Export Section -->
+            <div class="col-lg-6">
+                <form id="export-form" method="POST" class="d-flex align-items-center flex-wrap gap-2"
+                    style="margin-left: 15%;">
+                    {% csrf_token %}
+                    <label for="export-format" class="form-label mb-0 fw-bold">Export Format:</label>
+                    <select name="file-format" id="export-format" class="form-select w-auto" required>
+                        <option value="csv">CSV</option>
+                        <option value="json">JSON</option>
+                    </select>
+
+                    <button type="submit" formaction="{% url 'student_import_export' %}" name="export"
+                        class="btn-export">Export All</button>
+                    <button type="button" id="export-selected-btn" class="btn-export">Export Selected</button>
+                </form>
+
+                <p id="selected-count" class="mt-2 mb-0 fw-semibold text-muted" style="margin-left: 15%;">0 students
+                    selected</p>
+            </div>
+        </div>
+    </div>
+
+    <form id="selected-form" method="POST" style="display: none;">
+        {% csrf_token %}
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all"></th>
+                <th>ID</th>
+                <th>NRC</th>
+                <th>Name</th>
+                <th>Fathername</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>State</th>
+                <th>Address</th>
+                <th>Major</th>
+                <th>DOB</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in page_obj %}
+            <tr id="student-row-{{ student.id }}">
+                <td><input type="checkbox" class="row-checkbox" value="{{ student.studentid }}"></td>
+                <td>{{ student.studentid }}</td>
+                <td>{{ student.nrc }}</td>
+                <td>{{ student.name }}</td>
+                <td>{{ student.fathername }}</td>
+                <td>{{ student.email }}</td>
+                <td>{{ student.phone }}</td>
+                <td>{{ student.get_state_display }}</td>
+                <td>{{ student.address }}</td>
+                <td>{{ student.get_major_display }}</td>
+                <td>{{ student.dob }}</td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <a href="{% url 'student_update' student.pk %}" class="btn btn-sm me-1 custom-button">Update</a>
+                        <a href="{% url 'student_delete' student.pk %}" class="btn btn-sm me-1 custom-button">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="12">No students found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center mt-4">
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ request.GET.q }}&page=1">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?q={{ request.GET.q }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo; First</span></li>
+                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > page_obj.number|add:'-2' and num < page_obj.number|add:'2' %} <li class="page-item">
+                    <a class="page-link" href="?q={{ request.GET.q }}&page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.paginator.num_pages }}">Last
+                            &raquo;</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    <li class="page-item disabled"><span class="page-link">Last &raquo;</span></li>
+                    {% endif %}
+            </ul>
+        </nav>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ====== 1. Checkbox Select & Export Logic ======
+            const selectAll = document.getElementById('select-all');
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            const selectedCount = document.getElementById('selected-count');
+            const exportSelectedBtn = document.getElementById('export-selected-btn');
+            const exportFormat = document.getElementById('export-format');
+            const exportForm = document.getElementById('selected-form');
+
+            function updateSelectedCount() {
+                const count = document.querySelectorAll('.row-checkbox:checked').length;
+                if (selectedCount) {
+                    selectedCount.textContent = `${count} student${count !== 1 ? 's' : ''} selected`;
+                }
+            }
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
+                    checkboxes.forEach(cb => cb.checked = this.checked);
+                    updateSelectedCount();
+                });
+            }
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', updateSelectedCount);
+            });
+
+            if (exportSelectedBtn && exportForm && exportFormat) {
+                exportSelectedBtn.addEventListener('click', () => {
+                    const selected = document.querySelectorAll('.row-checkbox:checked');
+
+                    if (selected.length === 0) {
+                        alert("Please select at least one student to export.");
+                        return;
+                    }
+
+                    // Clear previous inputs
+                    exportForm.innerHTML = '';
+                    const csrf = document.querySelector('#export-form input[name="csrfmiddlewaretoken"]');
+                    if (csrf) exportForm.appendChild(csrf.cloneNode());
+
+                    // Add selected student IDs
+                    selected.forEach(cb => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'selected_students';
+                        input.value = cb.value;
+                        exportForm.appendChild(input);
+                    });
+
+                    // Add export format
+                    const formatInput = document.createElement('input');
+                    formatInput.type = 'hidden';
+                    formatInput.name = 'file-format';
+                    formatInput.value = exportFormat.value;
+                    exportForm.appendChild(formatInput);
+
+                    exportForm.action = "{% url 'export_selected_students' %}";
+                    exportForm.submit();
+                });
+            }
+
+            updateSelectedCount();
+
+            // ====== 2. Auto-hide Django messages ======
+            setTimeout(() => {
+                const msg = document.getElementById('messages');
+                if (msg) {
+                    msg.style.transition = 'opacity 0.5s ease';
+                    msg.style.opacity = '0';
+                    setTimeout(() => msg.remove(), 500);
+                }
+            }, 2000);
+        })
+    </script>
+
+</body>
+
+</html>
